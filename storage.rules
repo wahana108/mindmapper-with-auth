@@ -1,0 +1,21 @@
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Developer-specific image uploads for logs
+    // Path: logs/{logId}/images/{anyImageNameOrId}
+    match /logs/{logId}/images/{imageId} {
+      // Anyone can read images (as they might be linked in public logs)
+      allow read: if true;
+      
+      // Only the specified developer UID can write (upload/update/delete) images.
+      // REPLACE 'REPLACE_WITH_YOUR_ACTUAL_GOOGLE_UID' with your actual Firebase UID.
+      allow write: if request.auth != null && request.auth.uid == 'REPLACE_WITH_YOUR_ACTUAL_GOOGLE_UID';
+    }
+
+    // General public read access for other files if needed (e.g. user profile pictures if you add them)
+    // match /profile-pictures/{userId}/{fileName} {
+    //   allow read: if true;
+    //   allow write: if request.auth != null && request.auth.uid == userId;
+    // }
+  }
+}
