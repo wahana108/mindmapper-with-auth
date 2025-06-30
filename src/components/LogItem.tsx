@@ -134,21 +134,32 @@ export default function LogItem({ log, showControls = false, isDetailPage = fals
       </CardHeader>
       <CardContent className="pt-0">
         {currentLogData.imageUrls && currentLogData.imageUrls.length > 0 && (
-          <div className="mb-4 aspect-video bg-muted rounded-md overflow-hidden flex items-center justify-center border">
-            <img 
-              src={currentLogData.imageUrls[0].url} 
-              alt={currentLogData.imageUrls[0].caption || currentLogData.title} 
-              className="w-full h-full object-contain" 
-              onError={(e) => {
-                const target = e.currentTarget as HTMLImageElement;
-                target.onerror = null; 
-                target.style.display='none'; 
-                const errorText = target.parentElement?.querySelector('.image-error-text') as HTMLElement;
-                if(errorText) errorText.style.display = 'block';
-              }}
-              data-ai-hint="log image"
-            />
-            <p className="image-error-text text-xs text-destructive hidden">Image failed to load.</p>
+          <div className="mb-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {currentLogData.imageUrls.map((image, index) => (
+              <div key={index} className="aspect-video bg-muted rounded-md overflow-hidden flex items-center justify-center border relative">
+                <a href={image.url} target="_blank" rel="noopener noreferrer">
+                  <img 
+                    src={image.url} 
+                    alt={image.caption || currentLogData.title} 
+                    className="w-full h-full object-contain" 
+                    onError={(e) => {
+                      const target = e.currentTarget as HTMLImageElement;
+                      target.onerror = null;
+                      target.style.display = 'none';
+                      const errorText = target.parentElement?.parentElement?.querySelector('.image-error-text') as HTMLElement;
+                      if(errorText) errorText.style.display = 'block';
+                    }}
+                    data-ai-hint={`log image ${index + 1}`}
+                  />
+                </a>
+                <p className="image-error-text text-xs text-destructive hidden absolute">Image failed to load.</p>
+                {image.caption && (
+                  <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 truncate">
+                    {image.caption}
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         )}
         {youtubeEmbedUrl && (
