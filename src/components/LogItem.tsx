@@ -41,6 +41,11 @@ function getYouTubeEmbedUrl(url: string): string | null {
 
 export default function LogItem({ log, showControls = false, isDetailPage = false }: LogItemProps) {
   const { currentUser } = useAuth();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
   const isOwner = currentUser && currentUser.uid === log.ownerId;
   const youtubeEmbedUrl = log.youtubeLink ? getYouTubeEmbedUrl(log.youtubeLink) : null;
   const [commentRefreshKey, setCommentRefreshKey] = useState(0);
@@ -125,7 +130,7 @@ export default function LogItem({ log, showControls = false, isDetailPage = fals
           </div>
         </div>
         <CardDescription className="text-xs text-muted-foreground pt-1">
-          By: User {currentLogData.ownerId.substring(0, 6)}... | Updated: {new Date(currentLogData.updatedAt).toLocaleDateString()}
+          By: User {currentLogData.ownerId.substring(0, 6)}... | Updated: {currentLogData.updatedAt.substring(0, 10)}
         </CardDescription>
         <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
             {currentLogData.imageUrls && currentLogData.imageUrls.length > 0 && <ImageIcon size={14} className="text-blue-500" />}
@@ -215,16 +220,16 @@ export default function LogItem({ log, showControls = false, isDetailPage = fals
 
       <CardFooter className="flex flex-wrap justify-between items-center pt-4 border-t">
         <div className="flex gap-3 text-muted-foreground items-center">
-          <Button variant="ghost" size="sm" className="p-1 h-auto" onClick={handleLike} disabled={isLiking || !currentUser}>
+          {isClient && <Button variant="ghost" size="sm" className="p-1 h-auto" onClick={handleLike} disabled={isLiking || !currentUser}>
             <Heart size={16} className={`mr-1 ${isLiked ? 'fill-red-500 text-red-500' : ''}`} />
             {/* Removed like count display: {localLikeCount} */}
-          </Button>
+          </Button>}
           <div className="flex items-center gap-1 p-1 h-auto text-sm">
             <MessageSquare size={16} className="mr-1" /> {localCommentCount}
           </div>
         </div>
         <div className="flex gap-2 mt-2 sm:mt-0">
-          {showControls && isOwner && (
+          {isClient && showControls && isOwner && (
             <Link href={`/create-log?edit=${currentLogData.id}`}>
               <Button variant="outline" size="sm">
                 <Edit size={16} className="mr-1 sm:mr-2" /> Edit
