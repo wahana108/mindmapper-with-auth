@@ -4,7 +4,7 @@
 import type { LogEntry } from '@/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Globe, Lock, MessageSquare, Heart, Edit, ExternalLink, YoutubeIcon, ImageIcon, Link as LinkLucide } from 'lucide-react';
+import { Globe, Lock, MessageSquare, Heart, Edit, ExternalLink, YoutubeIcon, ImageIcon, Link as LinkLucide, Search } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -18,7 +18,7 @@ import { doc, setDoc, deleteDoc, collection, onSnapshot } from 'firebase/firesto
 interface LogItemProps {
   log: LogEntry;
   showControls?: boolean;
-  isDetailPage?: boolean; // New prop to indicate if this is the full detail page
+  isDetailPage?: boolean; 
 }
 
 function getYouTubeEmbedUrl(url: string): string | null {
@@ -46,6 +46,7 @@ export default function LogItem({ log, showControls = false, isDetailPage = fals
   useEffect(() => {
     setIsClient(true);
   }, []);
+
   const isOwner = currentUser && currentUser.uid === log.ownerId;
   const youtubeEmbedUrl = log.youtubeLink ? getYouTubeEmbedUrl(log.youtubeLink) : null;
   const [commentRefreshKey, setCommentRefreshKey] = useState(0);
@@ -54,12 +55,10 @@ export default function LogItem({ log, showControls = false, isDetailPage = fals
   const [localCommentCount, setLocalCommentCount] = useState(log.commentCount || 0);
   const [currentLogData, setCurrentLogData] = useState<LogEntry>(log);
 
-
   useEffect(() => {
      setCurrentLogData(log);
      setLocalCommentCount(log.commentCount || 0); 
   }, [log]);
-
 
   useEffect(() => {
     if (!currentLogData.id || !currentUser) {
@@ -194,9 +193,10 @@ export default function LogItem({ log, showControls = false, isDetailPage = fals
             </h4>
             <div className="flex flex-wrap gap-2">
               {currentLogData.relatedLogIds.map((relatedId, index) => (
-                <Link key={relatedId} href={`/logs/${relatedId}`} legacyBehavior>
-                  <a className="text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded-md hover:bg-secondary/80 transition-colors">
-                    {currentLogData.relatedLogTitles?.[index] || `Log ID: ${relatedId.substring(0,6)}...`}
+                <Link key={relatedId} href={`/search?q=${encodeURIComponent(relatedId)}`} legacyBehavior>
+                  <a className="text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded-md hover:bg-secondary/80 transition-colors flex items-center gap-1">
+                    <Search size={12} />
+                    <span>{currentLogData.relatedLogTitles?.[index] || `Search: ${relatedId.substring(0, 8)}...`}</span>
                   </a>
                 </Link>
               ))}
@@ -222,7 +222,6 @@ export default function LogItem({ log, showControls = false, isDetailPage = fals
         <div className="flex gap-3 text-muted-foreground items-center">
           {isClient && <Button variant="ghost" size="sm" className="p-1 h-auto" onClick={handleLike} disabled={isLiking || !currentUser}>
             <Heart size={16} className={`mr-1 ${isLiked ? 'fill-red-500 text-red-500' : ''}`} />
-            {/* Removed like count display: {localLikeCount} */}
           </Button>}
           <div className="flex items-center gap-1 p-1 h-auto text-sm">
             <MessageSquare size={16} className="mr-1" /> {localCommentCount}

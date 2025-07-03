@@ -2,9 +2,9 @@
 // src/app/search/page.tsx
 "use client";
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, Suspense } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs, doc, getDoc, orderBy, Timestamp as FirestoreTimestamp } from 'firebase/firestore';
 import type { LogEntry, LikedLogEntry } from '@/types';
@@ -34,14 +34,22 @@ async function fetchLogTitles(logIds: string[]): Promise<string[]> {
   return titles;
 }
 
-export default function SearchPage() {
+function SearchPageContent() {
   const { currentUser, loading: authLoading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [userLogs, setUserLogs] = useState<LogEntry[]>([]);
   const [likedLogs, setLikedLogs] = useState<LogEntry[]>([]);
   const [isLoadingLogs, setIsLoadingLogs] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const queryFromUrl = searchParams.get('q');
+    if (queryFromUrl) {
+      setSearchQuery(queryFromUrl);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (!authLoading && !currentUser) {
@@ -137,6 +145,7 @@ export default function SearchPage() {
     }
     const lowerCaseQuery = searchQuery.toLowerCase();
     return combinedLogs.filter(log =>
+      (log.id && log.id.toLowerCase().includes(lowerCaseQuery)) ||
       log.title.toLowerCase().includes(lowerCaseQuery) ||
       (log.description && log.description.toLowerCase().includes(lowerCaseQuery))
     );
@@ -182,5 +191,13 @@ export default function SearchPage() {
         emptyStateMessage={searchQuery ? "No logs match your search." : "You haven't created or liked any logs yet."}
       />
     </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={<div>Loading Search...</div>}>
+      <SearchPageContent />
+    </Suspense>
   );
 }
